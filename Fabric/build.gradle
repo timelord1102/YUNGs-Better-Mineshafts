@@ -16,7 +16,7 @@ dependencies {
     minecraft "com.mojang:minecraft:${mc_version}"
     mappings loom.layered {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
+        parchment(file("libs/officialExport-2025.04.02-local-SNAPSHOT.zip"))
     }
 
     // YUNG's API
