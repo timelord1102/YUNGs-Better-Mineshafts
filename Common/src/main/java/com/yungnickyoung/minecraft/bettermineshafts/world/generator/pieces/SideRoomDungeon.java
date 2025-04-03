@@ -22,6 +22,7 @@ import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import org.jetbrains.annotations.NotNull;
 
 public class SideRoomDungeon extends BetterMineshaftPiece {
     private static final int
@@ -86,7 +87,7 @@ public class SideRoomDungeon extends BetterMineshaftPiece {
     }
 
     @Override
-    public void postProcess(WorldGenLevel world, StructureManager structureManager, ChunkGenerator chunkGenerator, RandomSource randomSource, BoundingBox box, ChunkPos chunkPos, BlockPos blockPos) {
+    public void postProcess(@NotNull WorldGenLevel world, @NotNull StructureManager structureManager, @NotNull ChunkGenerator chunkGenerator, @NotNull RandomSource randomSource, @NotNull BoundingBox box, @NotNull ChunkPos chunkPos, @NotNull BlockPos blockPos) {
         // Fill with stone then clean out with air
         this.fill(world, box, randomSource, 0, 0, 0, LOCAL_X_END, LOCAL_Y_END, LOCAL_Z_END, config.blockStateRandomizers.brickRandomizer);
         this.fill(world, box, 1, 1, 1, LOCAL_X_END - 1, LOCAL_Y_END - 1, LOCAL_Z_END - 1, AIR);
@@ -103,6 +104,7 @@ public class SideRoomDungeon extends BetterMineshaftPiece {
         BlockEntity blockEntity = world.getBlockEntity(spawnerPos);
         if (blockEntity instanceof SpawnerBlockEntity) {
             ((SpawnerBlockEntity) blockEntity).setEntityId(EntityType.CAVE_SPIDER, randomSource);
+            ((SpawnerBlockEntity) blockEntity).getSpawner().getOrCreateDisplayEntity(world.getLevel(), spawnerPos);
         }
 
         // Cobwebs immediately surrounding chests
