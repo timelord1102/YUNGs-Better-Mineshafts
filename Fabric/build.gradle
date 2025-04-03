@@ -5,7 +5,7 @@ plugins {
     id 'com.modrinth.minotaur'
 }
 
-def useLocalYungsApi = findProject(':yungsapi') != null
+def useLocalYungsApi = findProject(':yungsapi') != true
 
 repositories {
     maven { url "https://maven.shedaniel.me/" }

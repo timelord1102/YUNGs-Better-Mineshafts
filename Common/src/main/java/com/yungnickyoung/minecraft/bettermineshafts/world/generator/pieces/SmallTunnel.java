@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.MinecartChest;
 import net.minecraft.world.entity.vehicle.MinecartTNT;
 import net.minecraft.world.level.ChunkPos;
@@ -28,6 +29,7 @@ import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,9 +47,13 @@ public class SmallTunnel extends BetterMineshaftPiece {
 
     public SmallTunnel(CompoundTag compoundTag) {
         super(StructurePieceTypeModule.SMALL_TUNNEL, compoundTag);
-        ListTag listTag1 = compoundTag.getList("Supports", 3);
+        ListTag listTag1 = compoundTag.getListOrEmpty("Supports");
         for (int i = 0; i < listTag1.size(); ++i) {
-            this.supports.add(listTag1.getInt(i));
+            if (listTag1.getInt(i).isEmpty()) {
+                BetterMineshaftsCommon.LOGGER.error("SmallTunnel: Invalid Supports list entry at index {}: empty value found. Skipping...", i);
+                continue;
+            }
+            this.supports.add(listTag1.getInt(i).get());
         }
     }
 
@@ -101,7 +107,7 @@ public class SmallTunnel extends BetterMineshaftPiece {
     }
 
     @Override
-    public void postProcess(WorldGenLevel world, StructureManager structureManager, ChunkGenerator chunkGenerator, RandomSource randomSource, BoundingBox box, ChunkPos chunkPos, BlockPos blockPos) {
+    public void postProcess(@NotNull WorldGenLevel world, @NotNull StructureManager structureManager, @NotNull ChunkGenerator chunkGenerator, @NotNull RandomSource randomSource, @NotNull BoundingBox box, @NotNull ChunkPos chunkPos, @NotNull BlockPos blockPos) {
         // Randomize blocks
         this.chanceReplaceNonAir(world, box, randomSource, config.replacementRate, 0, 1, 0, LOCAL_X_END, LOCAL_Y_END, LOCAL_Z_END, config.blockStateRandomizers.mainRandomizer);
 
@@ -131,7 +137,9 @@ public class SmallTunnel extends BetterMineshaftPiece {
             if (randomSource.nextFloat() < BetterMineshaftsCommon.CONFIG.spawnRates.smallShaftChestMinecartSpawnRate) {
                 BlockPos blockPos = this.getWorldPos(LOCAL_X_END / 2, 1, z);
                 if (box.isInside(blockPos) && !world.getBlockState(blockPos.below()).isAir()) {
-                    MinecartChest chestMinecartEntity = new MinecartChest(world.getLevel(), ((float) blockPos.getX() + 0.5F), ((float) blockPos.getY() + 0.5F), ((float) blockPos.getZ() + 0.5F));
+                    EntityType<MinecartChest> chestMinecart = EntityType.CHEST_MINECART;
+                    MinecartChest chestMinecartEntity = new MinecartChest(chestMinecart, world.getLevel());
+                    chestMinecartEntity.setPos(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
                     chestMinecartEntity.setLootTable(BuiltInLootTables.ABANDONED_MINESHAFT, randomSource.nextLong());
                     world.addFreshEntity(chestMinecartEntity);
                 }
@@ -193,7 +201,9 @@ public class SmallTunnel extends BetterMineshaftPiece {
             if (randomSource.nextFloat() < BetterMineshaftsCommon.CONFIG.spawnRates.smallShaftTntMinecartSpawnRate) {
                 BlockPos blockPos = this.getWorldPos(LOCAL_X_END / 2, 1, z);
                 if (box.isInside(blockPos) && !world.getBlockState(blockPos.below()).isAir()) {
-                    MinecartTNT tntMinecartEntity = new MinecartTNT(world.getLevel(), ((float) blockPos.getX() + 0.5F), ((float) blockPos.getY() + 0.5F), ((float) blockPos.getZ() + 0.5F));
+                    EntityType<MinecartTNT> tntMinecartType = EntityType.TNT_MINECART;
+                    MinecartTNT tntMinecartEntity = new MinecartTNT(tntMinecartType, world.getLevel());
+                    tntMinecartEntity.setPos(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
                     world.addFreshEntity(tntMinecartEntity);
                 }
             }

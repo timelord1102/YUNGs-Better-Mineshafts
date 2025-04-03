@@ -39,20 +39,20 @@ public class VerticalEntrance extends BetterMineshaftPiece {
 
     public VerticalEntrance(CompoundTag compoundTag) {
         super(StructurePieceTypeModule.VERTICAL_ENTRANCE, compoundTag);
-        int centerPosX = compoundTag.getIntArray("centerPos")[0];
-        int centerPosY = compoundTag.getIntArray("centerPos")[1];
-        int centerPosZ = compoundTag.getIntArray("centerPos")[2];
+        int centerPosX = compoundTag.getIntArray("centerPos").get()[0];
+        int centerPosY = compoundTag.getIntArray("centerPos").get()[1];
+        int centerPosZ = compoundTag.getIntArray("centerPos").get()[2];
         this.centerPos = new BlockPos(centerPosX, centerPosY, centerPosZ);
 
-        this.yAxisLen = compoundTag.getInt("yAxisLen");
+        this.yAxisLen = compoundTag.getInt("yAxisLen").get();
         this.localYEnd = this.yAxisLen - 1;
-        this.tunnelLength = compoundTag.getInt("tunnelLen");
-        this.tunnelFloorAltitude = compoundTag.getInt("floorAltitude");
+        this.tunnelLength = compoundTag.getInt("tunnelLen").get();
+        this.tunnelFloorAltitude = compoundTag.getInt("floorAltitude").get();
 
-        int tunnelDirInt = compoundTag.getInt("tunnelDir");
+        int tunnelDirInt = compoundTag.getInt("tunnelDir").get();
         this.tunnelDirection = tunnelDirInt == -1 ? null : Direction.from2DDataValue(tunnelDirInt);
 
-        this.hasTunnel = compoundTag.getBoolean("hasTunnel");
+        this.hasTunnel = compoundTag.getBoolean("hasTunnel").get();
     }
 
     public VerticalEntrance(int pieceChainLen, BlockPos.MutableBlockPos centerPos, Direction direction, BetterMineshaftConfiguration config, int maxBuildHeight) {
@@ -298,7 +298,7 @@ public class VerticalEntrance extends BetterMineshaftPiece {
      * in the face of a mountain or hill.
      */
     private void determineDirection(WorldGenLevel world) {
-        int minSurfaceHeight = world.getMaxBuildHeight() - 1;
+        int minSurfaceHeight = world.getMaxSectionY() - 1;
 
         // Set height for this, equal to 2 below the min height in the 5x5 vertical shaft piece
         for (int xOffset = -2; xOffset <= 2; xOffset++) {
@@ -321,7 +321,7 @@ public class VerticalEntrance extends BetterMineshaftPiece {
         }
 
         // Require surface opening to be above sea level
-        if (minSurfaceHeight < 60 || minSurfaceHeight == world.getMaxBuildHeight() - 1) return;
+        if (minSurfaceHeight < 60 || minSurfaceHeight == world.getMaxSectionY() - 1) return;
 
         int ceilingHeight = minSurfaceHeight - 2;
         int floorHeight = ceilingHeight - 4;

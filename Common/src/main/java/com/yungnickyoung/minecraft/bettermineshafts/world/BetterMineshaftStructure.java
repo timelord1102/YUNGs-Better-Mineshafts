@@ -16,6 +16,7 @@ import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -34,7 +35,7 @@ public class BetterMineshaftStructure extends Structure {
     }
 
     @Override
-    public Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
+    public @NotNull Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
         context.random().nextDouble();
         ChunkPos chunkPos = context.chunkPos();
 
@@ -48,7 +49,7 @@ public class BetterMineshaftStructure extends Structure {
     }
 
     @Override
-    public StructureType<?> type() {
+    public @NotNull StructureType<?> type() {
         return StructureTypeModule.BETTER_MINESHAFT;
     }
 
@@ -68,7 +69,7 @@ public class BetterMineshaftStructure extends Structure {
                 startingPos,
                 direction,
                 this.config,
-                context.heightAccessor().getMaxBuildHeight()
+                context.heightAccessor().getMaxSectionY()
         );
 
         structurePiecesBuilder.addPiece(entryPoint);

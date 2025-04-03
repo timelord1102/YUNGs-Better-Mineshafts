@@ -16,6 +16,7 @@ import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.MinecartChest;
 import net.minecraft.world.entity.vehicle.MinecartTNT;
 import net.minecraft.world.level.ChunkPos;
@@ -53,37 +54,61 @@ public class BigTunnel extends BetterMineshaftPiece {
     public BigTunnel(CompoundTag compoundTag) {
         super(StructurePieceTypeModule.BIG_TUNNEL, compoundTag);
 
-        ListTag listTag1 = compoundTag.getList("SmallShaftLeftEntrances", 11);
-        ListTag listTag2 = compoundTag.getList("SmallShaftRightEntrances", 11);
-        ListTag listTag3 = compoundTag.getList("SideRoomEntrances", 11);
-        ListTag listTag4 = compoundTag.getList("BigSupports", 3);
-        ListTag listTag5 = compoundTag.getList("SmallSupports", 3);
-        ListTag listTag6 = compoundTag.getList("GravelDeposits", 11);
+        ListTag listTag1 = compoundTag.getListOrEmpty("SmallShaftLeftEntrances");
+        ListTag listTag2 = compoundTag.getListOrEmpty("SmallShaftRightEntrances");
+        ListTag listTag3 = compoundTag.getListOrEmpty("SideRoomEntrances");
+        ListTag listTag4 = compoundTag.getListOrEmpty("BigSupports");
+        ListTag listTag5 = compoundTag.getListOrEmpty("SmallSupports");
+        ListTag listTag6 = compoundTag.getListOrEmpty("GravelDeposits");
 
         for (int i = 0; i < listTag1.size(); ++i) {
-            this.smallShaftLeftEntrances.add(new BlockPos(listTag1.getIntArray(i)[0], listTag1.getIntArray(i)[1], listTag1.getIntArray(i)[2]));
+            if (listTag1.getIntArray(i).isEmpty()) {
+                BetterMineshaftsCommon.LOGGER.error("Found empty SmallShaftLeftEntrances entry in BigTunnel piece, skipping.");
+                continue;
+            }
+            this.smallShaftLeftEntrances.add(new BlockPos(listTag1.getIntArray(i).get()[0], listTag1.getIntArray(i).get()[1], listTag1.getIntArray(i).get()[2]));
         }
 
         for (int i = 0; i < listTag2.size(); ++i) {
-            this.smallShaftRightEntrances.add(new BlockPos(listTag2.getIntArray(i)[0], listTag2.getIntArray(i)[1], listTag2.getIntArray(i)[2]));
+            if (listTag2.getIntArray(i).isEmpty()) {
+                BetterMineshaftsCommon.LOGGER.error("Found empty SmallShaftRightEntrances entry in BigTunnel piece, skipping.");
+                continue;
+            }
+            this.smallShaftRightEntrances.add(new BlockPos(listTag2.getIntArray(i).get()[0], listTag2.getIntArray(i).get()[1], listTag2.getIntArray(i).get()[2]));
         }
 
         for (int i = 0; i < listTag3.size(); ++i) {
-            this.sideRoomEntrances.add(new BoundingBox(listTag3.getIntArray(i)[0], listTag3.getIntArray(i)[1],
-                    listTag3.getIntArray(i)[2], listTag3.getIntArray(i)[3],
-                    listTag3.getIntArray(i)[4], listTag3.getIntArray(i)[5]));
+            if (listTag3.getIntArray(i).isEmpty()) {
+                BetterMineshaftsCommon.LOGGER.error("Found empty SideRoomEntrances entry in BigTunnel piece, skipping.");
+                continue;
+            }
+            this.sideRoomEntrances.add(new BoundingBox(listTag3.getIntArray(i).get()[0], listTag3.getIntArray(i).get()[1],
+                    listTag3.getIntArray(i).get()[2], listTag3.getIntArray(i).get()[3],
+                    listTag3.getIntArray(i).get()[4], listTag3.getIntArray(i).get()[5]));
         }
 
         for (int i = 0; i < listTag4.size(); ++i) {
-            this.bigSupports.add(listTag4.getInt(i));
+            if (listTag4.getInt(i).isEmpty()) {
+                BetterMineshaftsCommon.LOGGER.error("Found empty BigSupports entry in BigTunnel piece, skipping.");
+                continue;
+            }
+            this.bigSupports.add(listTag4.getInt(i).get());
         }
 
         for (int i = 0; i < listTag5.size(); ++i) {
-            this.smallSupports.add(listTag5.getInt(i));
+            if (listTag5.getInt(i).isEmpty()) {
+                BetterMineshaftsCommon.LOGGER.error("Found empty SmallSupports entry in BigTunnel piece, skipping.");
+                continue;
+            }
+            this.smallSupports.add(listTag5.getInt(i).get());
         }
 
         for (int i = 0; i < listTag6.size(); ++i) {
-            this.gravelDeposits.add(new Pair<>(listTag6.getIntArray(i)[0], listTag6.getIntArray(i)[1]));
+            if (listTag6.getIntArray(i).isEmpty() || listTag6.getIntArray(i).get().length < 2) {
+                BetterMineshaftsCommon.LOGGER.error("Found empty GravelDeposits entry in BigTunnel piece, skipping.");
+                continue;
+            }
+            this.gravelDeposits.add(new Pair<>(listTag6.getIntArray(i).get()[0], listTag6.getIntArray(i).get()[1]));
         }
     }
 
@@ -404,8 +429,10 @@ public class BigTunnel extends BetterMineshaftPiece {
             if (randomSource.nextFloat() < BetterMineshaftsCommon.CONFIG.spawnRates.mainShaftChestMinecartSpawnRate) {
                 BlockPos blockPos = this.getWorldPos(LOCAL_X_END / 2, 1, z);
                 if (box.isInside(blockPos) && !world.getBlockState(blockPos.below()).isAir()) {
-                    MinecartChest chestMinecartEntity = new MinecartChest(world.getLevel(), ((float) blockPos.getX() + 0.5F), ((float) blockPos.getY() + 0.5F), ((float) blockPos.getZ() + 0.5F));
+                    EntityType<MinecartChest> chestMinecart = EntityType.CHEST_MINECART;
+                    MinecartChest chestMinecartEntity = new MinecartChest(chestMinecart ,world.getLevel());
                     chestMinecartEntity.setLootTable(BuiltInLootTables.ABANDONED_MINESHAFT, randomSource.nextLong());
+                    chestMinecartEntity.setPos(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
                     world.addFreshEntity(chestMinecartEntity);
                 }
             }
@@ -417,7 +444,9 @@ public class BigTunnel extends BetterMineshaftPiece {
             if (randomSource.nextFloat() < BetterMineshaftsCommon.CONFIG.spawnRates.mainShaftTntMinecartSpawnRate) {
                 BlockPos blockPos = this.getWorldPos(LOCAL_X_END / 2, 1, z);
                 if (box.isInside(blockPos) && !world.getBlockState(blockPos.below()).isAir()) {
-                    MinecartTNT tntMinecartEntity = new MinecartTNT(world.getLevel(), ((float) blockPos.getX() + 0.5F), ((float) blockPos.getY() + 0.5F), ((float) blockPos.getZ() + 0.5F));
+                    EntityType<MinecartTNT> tntMinecartType = EntityType.TNT_MINECART;
+                    MinecartTNT tntMinecartEntity = new MinecartTNT(tntMinecartType, world.getLevel());
+                    tntMinecartEntity.setPos(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
                     world.addFreshEntity(tntMinecartEntity);
                 }
             }

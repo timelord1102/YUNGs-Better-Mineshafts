@@ -1,6 +1,5 @@
 package com.yungnickyoung.minecraft.bettermineshafts.world.generator.pieces;
 
-import com.yungnickyoung.minecraft.bettermineshafts.mixin.BlockBehaviourAccessor;
 import com.yungnickyoung.minecraft.bettermineshafts.world.config.BetterMineshaftConfiguration;
 import com.yungnickyoung.minecraft.yungsapi.api.world.randomize.BlockStateRandomizer;
 import net.minecraft.core.BlockPos;
@@ -10,7 +9,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.features.CaveFeatures;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.WorldGenLevel;
@@ -18,8 +19,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.VineBlock;
-import net.minecraft.world.level.block.entity.BarrelBlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
@@ -43,31 +43,31 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
     public BetterMineshaftPiece(StructurePieceType structurePieceType, CompoundTag compoundTag) {
         super(structurePieceType, compoundTag);
         this.config = new BetterMineshaftConfiguration(
-                compoundTag.getFloat("replacementRate"),
-                BetterMineshaftConfiguration.LegVariant.byId(compoundTag.getInt("legVariantIndex")),
+                compoundTag.getFloat("replacementRate").get(),
+                BetterMineshaftConfiguration.LegVariant.byId(compoundTag.getInt("legVariantIndex").get()),
                 new BetterMineshaftConfiguration.MineshaftDecorationChances(
-                        compoundTag.getFloat("vineChance"),
-                        compoundTag.getFloat("snowChance"),
-                        compoundTag.getFloat("cactusChance"),
-                        compoundTag.getFloat("deadBushChance"),
-                        compoundTag.getFloat("mushroomChance"),
-                        compoundTag.getFloat("gravelPileChance"),
-                        compoundTag.getBoolean("lushDecorations"),
-                        compoundTag.getBoolean("dripstoneDecorations")),
+                        compoundTag.getFloat("vineChance").get(),
+                        compoundTag.getFloat("snowChance").get(),
+                        compoundTag.getFloat("cactusChance").get(),
+                        compoundTag.getFloat("deadBushChance").get(),
+                        compoundTag.getFloat("mushroomChance").get(),
+                        compoundTag.getFloat("gravelPileChance").get(),
+                        compoundTag.getBoolean("lushDecorations").get(),
+                        compoundTag.getBoolean("dripstoneDecorations").get()),
                 new BetterMineshaftConfiguration.MineshaftBlockStates(
-                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("mainBlockId")),
-                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("supportBlockId")),
-                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("slabBlockId")),
-                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("gravelBlockId")),
-                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("stoneWallBlockId")),
-                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("stoneSlabBlockId")),
-                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("trapdoorBlockId")),
-                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("smallLegBlockId"))),
+                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("mainBlockId").get()),
+                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("supportBlockId").get()),
+                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("slabBlockId").get()),
+                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("gravelBlockId").get()),
+                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("stoneWallBlockId").get()),
+                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("stoneSlabBlockId").get()),
+                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("trapdoorBlockId").get()),
+                        Block.BLOCK_STATE_REGISTRY.byId(compoundTag.getInt("smallLegBlockId").get())),
                 new BetterMineshaftConfiguration.MineshaftBlockstateRandomizers(
-                        new BlockStateRandomizer(compoundTag.getCompound("mainSelector")),
-                        new BlockStateRandomizer(compoundTag.getCompound("floorSelector")),
-                        new BlockStateRandomizer(compoundTag.getCompound("brickSelector")),
-                        new BlockStateRandomizer(compoundTag.getCompound("legSelector"))));
+                        new BlockStateRandomizer(compoundTag.getCompound("mainSelector").get()),
+                        new BlockStateRandomizer(compoundTag.getCompound("floorSelector").get()),
+                        new BlockStateRandomizer(compoundTag.getCompound("brickSelector").get()),
+                        new BlockStateRandomizer(compoundTag.getCompound("legSelector").get())));
     }
 
     @Override
@@ -109,21 +109,18 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
      *                                  GENERATION UTIL METHODS                                *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    protected boolean addBarrel(WorldGenLevel world, BoundingBox boundingBox, RandomSource randomSource, BlockPos pos, ResourceKey<LootTable> lootTableId) {
+    protected boolean addBarrel(WorldGenLevel world, BoundingBox boundingBox, RandomSource randomSource, BlockPos pos, ResourceKey<LootTable> lootTableKey) {
         if (boundingBox.isInside(pos) && world.getBlockState(pos).getBlock() != Blocks.BARREL) {
             world.setBlock(pos, Blocks.BARREL.defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP), 2);
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof BarrelBlockEntity barrelBlockEntity) {
-                barrelBlockEntity.setLootTable(lootTableId, randomSource.nextLong());
-            }
+            RandomizableContainer.setBlockEntityLootTable(world, randomSource, pos, lootTableKey);
             return true;
         } else {
             return false;
         }
     }
 
-    protected boolean addBarrel(WorldGenLevel world, BoundingBox boundingBox, RandomSource randomSource, int x, int y, int z, ResourceKey<LootTable> lootTableId) {
-        return this.addBarrel(world, boundingBox, randomSource, this.getWorldPos(x, y, z), lootTableId);
+    protected boolean addBarrel(WorldGenLevel world, BoundingBox boundingBox, RandomSource randomSource, int x, int y, int z, ResourceKey<LootTable> lootTableKey) {
+        return this.addBarrel(world, boundingBox, randomSource, this.getWorldPos(x, y, z), lootTableKey);
     }
 
     /**
@@ -137,9 +134,9 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
                     mutable.set(this.getWorldX(x, z), this.getWorldY(y), this.getWorldZ(x, z)).move(facing);
                     BlockState nextBlock = this.getBlock(world, x + facing.getStepX(), y + facing.getStepY(), z + facing.getStepZ(), boundingBox);
                     if (
-                            this.getBlock(world, x, y, z, boundingBox).isAir()
-                                    && Block.isFaceFull(nextBlock.getCollisionShape(world, mutable), facing.getOpposite())
-                                    && nextBlock.getBlock().defaultBlockState() != Blocks.LADDER.defaultBlockState()
+                        this.getBlock(world, x, y, z, boundingBox).isAir()
+                            && Block.isFaceFull(nextBlock.getCollisionShape(world, mutable), facing.getOpposite())
+                            && nextBlock.getBlock().defaultBlockState() != Blocks.LADDER.defaultBlockState()
                     ) {
                         if (randomSource.nextFloat() < chance) {
                             this.placeBlock(world, Blocks.VINE.defaultBlockState().setValue(VineBlock.getPropertyForFace(facing.getAxis() == Direction.Axis.X ? facing : facing.getOpposite()), true), x, y, z, boundingBox);
@@ -164,7 +161,7 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
      * Add decorations specific to a biome variant, such as snow.
      */
     protected void addBiomeDecorations(WorldGenLevel world, BoundingBox box, RandomSource randomSource, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-        Registry<ConfiguredFeature<?, ?>> registry = world.registryAccess().registry(Registries.CONFIGURED_FEATURE).get();
+        Registry<ConfiguredFeature<?, ?>> registry = world.registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE);
 
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
@@ -175,7 +172,7 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
 
                     // Snow layers
                     if (config.decorationChances.snowChance > 0) {
-                        if (randomSource.nextFloat() < config.decorationChances.snowChance && state.isAir() && ((BlockBehaviourAccessor) Blocks.SNOW).callCanSurvive(AIR, world, blockPos)) {
+                        if (randomSource.nextFloat() < config.decorationChances.snowChance && state.isAir() && Blocks.SNOW.defaultBlockState().canSurvive(world, blockPos)) {
                             this.placeBlock(world, Blocks.SNOW.defaultBlockState().setValue(BlockStateProperties.LAYERS, randomSource.nextInt(2) + 1), x, y, z, box);
                         }
                     }
@@ -183,17 +180,17 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
                     if (config.decorationChances.lushDecorations) {
                         // Moss & ground plants
                         if (box.isInside(blockPos) && randomSource.nextFloat() < .005f) {
-                            registry.get(CaveFeatures.MOSS_PATCH).place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
+                            registry.get(CaveFeatures.MOSS_PATCH).get().value().place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
                         }
 
                         // Clay, water, dripleaf
                         if (box.isInside(blockPos) && randomSource.nextFloat() < .005f) {
-                            registry.get(CaveFeatures.LUSH_CAVES_CLAY).place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
+                            registry.get(CaveFeatures.LUSH_CAVES_CLAY).get().value().place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
                         }
 
                         // Moss ceiling & cave vines
                         if (box.isInside(blockPos) && randomSource.nextFloat() < .005f) {
-                            registry.get(CaveFeatures.MOSS_PATCH_CEILING).place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
+                            registry.get(CaveFeatures.MOSS_PATCH_CEILING).get().value().place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
                         }
 
                         // Moss layers
@@ -204,17 +201,17 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
 
                     if (config.decorationChances.dripstoneDecorations) {
                         if (box.isInside(blockPos) && randomSource.nextFloat() < .02f) {
-                            registry.get(CaveFeatures.DRIPSTONE_CLUSTER).place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
+                            registry.get(CaveFeatures.DRIPSTONE_CLUSTER).get().value().place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
                         }
 
                         if (box.isInside(blockPos) && randomSource.nextFloat() < .02f) {
-                            registry.get(CaveFeatures.POINTED_DRIPSTONE).place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
+                            registry.get(CaveFeatures.POINTED_DRIPSTONE).get().value().place(world, world.getLevel().getChunkSource().getGenerator(), randomSource, blockPos);
                         }
                     }
 
                     // Cacti
                     if (config.decorationChances.cactusChance > 0 && randomSource.nextFloat() < config.decorationChances.cactusChance) {
-                        if (state.isAir() && ((BlockBehaviourAccessor) Blocks.CACTUS).callCanSurvive(AIR, world, blockPos)) {
+                        if (state.isAir() && Blocks.CACTUS.defaultBlockState().canSurvive( world, blockPos)) {
                             this.placeBlock(world, Blocks.CACTUS.defaultBlockState().setValue(BlockStateProperties.AGE_15, 0), x, y, z, box);
                             if (randomSource.nextFloat() < .5f && this.getBlock(world, x, y + 1, z, box).is(Blocks.AIR)) {
                                 this.placeBlock(world, Blocks.CACTUS.defaultBlockState().setValue(BlockStateProperties.AGE_15, 0), x, y + 1, z, box);
@@ -231,7 +228,7 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
 
                     // Mushrooms
                     if (config.decorationChances.mushroomChance > 0) {
-                        if (state.isAir() && ((BlockBehaviourAccessor) Blocks.RED_MUSHROOM).callCanSurvive(AIR, world, blockPos)) {
+                        if (state.isAir() && Blocks.RED_MUSHROOM.defaultBlockState().canSurvive(world, blockPos)) {
                             float r = randomSource.nextFloat();
                             if (r < config.decorationChances.mushroomChance / 2) {
                                 this.placeBlock(world, Blocks.RED_MUSHROOM.defaultBlockState(), x, y, z, box);
@@ -249,7 +246,7 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(x, -1, z);
         BlockState state = this.getBlock(world, mutable.getX(), mutable.getY(), mutable.getZ(), box);
 
-        while (getWorldY(mutable.getY()) > world.getMinBuildHeight() + 1 && isReplaceableByStructures(state)) {
+        while (getWorldY(mutable.getY()) > world.getMinSectionY() + 1 && isReplaceableByStructures(state)) {
             this.placeBlock(world, selector.get(randomSource), x, mutable.getY(), z, box);
             mutable.move(Direction.DOWN);
             state = this.getBlock(world, mutable.getX(), mutable.getY(), mutable.getZ(), box);
@@ -260,7 +257,7 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(x, -1, z);
         BlockState state = this.getBlock(world, mutable.getX(), mutable.getY(), mutable.getZ(), box);
         boolean lavaBelow = false;
-        while (getWorldY(mutable.getY()) > world.getMinBuildHeight() + 1 && isReplaceableByStructures(state)) {
+        while (getWorldY(mutable.getY()) > world.getMinSectionY() + 1 && isReplaceableByStructures(state)) {
             if (state.is(Blocks.LAVA)) {
                 lavaBelow = true;
                 break;
@@ -289,7 +286,7 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
                         fillColumnBetween(world, Blocks.CHAIN.defaultBlockState(), mutable, realChainY + 2, realChainY + length);
                         return false;
                     }
-                    canGenerateChain = length <= 50 && currBlockCanBeReplaced && mutable.getY() < world.getMaxBuildHeight() - 1;
+                    canGenerateChain = length <= 50 && currBlockCanBeReplaced && mutable.getY() < world.getMaxSectionY() - 1;
                 }
                 ++length;
             }
@@ -322,7 +319,7 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
                     fillColumnBetween(world, this.config.blockStates.smallLegBlockState, mutable, realPillarY - length + 1, realPillarY);
                     return;
                 }
-                canGenerateLeg = length <= 20 && currBlockCanBeReplaced && mutable.getY() > world.getMinBuildHeight() + 1;
+                canGenerateLeg = length <= 20 && currBlockCanBeReplaced && mutable.getY() > world.getMinSectionY() + 1;
             }
 
             if (canGenerateChain) {
@@ -334,7 +331,7 @@ public abstract class BetterMineshaftPiece extends StructurePiece {
                     fillColumnBetween(world, Blocks.CHAIN.defaultBlockState(), mutable, realChainY + 2, realChainY + length);
                     return;
                 }
-                canGenerateChain = length <= 50 && currBlockCanBeReplaced && mutable.getY() < world.getMaxBuildHeight() - 1;
+                canGenerateChain = length <= 50 && currBlockCanBeReplaced && mutable.getY() < world.getMaxSectionY() - 1;
             }
             ++length;
         }
