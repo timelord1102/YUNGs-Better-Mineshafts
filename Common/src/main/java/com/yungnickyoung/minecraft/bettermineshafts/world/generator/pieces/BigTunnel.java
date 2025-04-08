@@ -88,19 +88,11 @@ public class BigTunnel extends BetterMineshaftPiece {
         }
 
         for (int i = 0; i < listTag4.size(); ++i) {
-            if (listTag4.getInt(i).isEmpty()) {
-                BetterMineshaftsCommon.LOGGER.error("Found empty BigSupports entry in BigTunnel piece, skipping.");
-                continue;
-            }
-            this.bigSupports.add(listTag4.getInt(i).get());
+            this.bigSupports.add(listTag4.getIntOr(i, 0));
         }
 
         for (int i = 0; i < listTag5.size(); ++i) {
-            if (listTag5.getInt(i).isEmpty()) {
-                BetterMineshaftsCommon.LOGGER.error("Found empty SmallSupports entry in BigTunnel piece, skipping.");
-                continue;
-            }
-            this.smallSupports.add(listTag5.getInt(i).get());
+            this.smallSupports.add(listTag5.getIntOr(i, 0));
         }
 
         for (int i = 0; i < listTag6.size(); ++i) {
@@ -429,8 +421,7 @@ public class BigTunnel extends BetterMineshaftPiece {
             if (randomSource.nextFloat() < BetterMineshaftsCommon.CONFIG.spawnRates.mainShaftChestMinecartSpawnRate) {
                 BlockPos blockPos = this.getWorldPos(LOCAL_X_END / 2, 1, z);
                 if (box.isInside(blockPos) && !world.getBlockState(blockPos.below()).isAir()) {
-                    EntityType<MinecartChest> chestMinecart = EntityType.CHEST_MINECART;
-                    MinecartChest chestMinecartEntity = new MinecartChest(chestMinecart ,world.getLevel());
+                    MinecartChest chestMinecartEntity = new MinecartChest(EntityType.CHEST_MINECART ,world.getLevel());
                     chestMinecartEntity.setLootTable(BuiltInLootTables.ABANDONED_MINESHAFT, randomSource.nextLong());
                     chestMinecartEntity.setPos(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
                     world.addFreshEntity(chestMinecartEntity);
@@ -444,8 +435,7 @@ public class BigTunnel extends BetterMineshaftPiece {
             if (randomSource.nextFloat() < BetterMineshaftsCommon.CONFIG.spawnRates.mainShaftTntMinecartSpawnRate) {
                 BlockPos blockPos = this.getWorldPos(LOCAL_X_END / 2, 1, z);
                 if (box.isInside(blockPos) && !world.getBlockState(blockPos.below()).isAir()) {
-                    EntityType<MinecartTNT> tntMinecartType = EntityType.TNT_MINECART;
-                    MinecartTNT tntMinecartEntity = new MinecartTNT(tntMinecartType, world.getLevel());
+                    MinecartTNT tntMinecartEntity = new MinecartTNT(EntityType.TNT_MINECART, world.getLevel());
                     tntMinecartEntity.setPos(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
                     world.addFreshEntity(tntMinecartEntity);
                 }
@@ -566,7 +556,7 @@ public class BigTunnel extends BetterMineshaftPiece {
         for (int n = 0; n <= LOCAL_Z_END; n++) {
             blocksSinceLastRail++;
             if ((randomSource.nextInt(20) == 0 || blocksSinceLastRail > 25) && this.getBlock(world, LOCAL_X_END / 2, 1, n, box).getBlock() == Blocks.RAIL) {
-                this.placeBlock(world, Blocks.POWERED_RAIL.defaultBlockState().setValue(BlockStateProperties.POWERED, true), LOCAL_X_END / 2, 1, n, box);
+                this.placeBlock(world, Blocks.POWERED_RAIL.defaultBlockState().setValue(BlockStateProperties.POWERED, false), LOCAL_X_END / 2, 1, n, box);
                 blocksSinceLastRail = 0; // reset counter
             }
         }

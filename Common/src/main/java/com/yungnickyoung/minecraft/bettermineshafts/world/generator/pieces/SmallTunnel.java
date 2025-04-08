@@ -49,11 +49,7 @@ public class SmallTunnel extends BetterMineshaftPiece {
         super(StructurePieceTypeModule.SMALL_TUNNEL, compoundTag);
         ListTag listTag1 = compoundTag.getListOrEmpty("Supports");
         for (int i = 0; i < listTag1.size(); ++i) {
-            if (listTag1.getInt(i).isEmpty()) {
-                BetterMineshaftsCommon.LOGGER.error("SmallTunnel: Invalid Supports list entry at index {}: empty value found. Skipping...", i);
-                continue;
-            }
-            this.supports.add(listTag1.getInt(i).get());
+            this.supports.add(listTag1.getIntOr(i, 0));
         }
     }
 
@@ -137,8 +133,7 @@ public class SmallTunnel extends BetterMineshaftPiece {
             if (randomSource.nextFloat() < BetterMineshaftsCommon.CONFIG.spawnRates.smallShaftChestMinecartSpawnRate) {
                 BlockPos blockPos = this.getWorldPos(LOCAL_X_END / 2, 1, z);
                 if (box.isInside(blockPos) && !world.getBlockState(blockPos.below()).isAir()) {
-                    EntityType<MinecartChest> chestMinecart = EntityType.CHEST_MINECART;
-                    MinecartChest chestMinecartEntity = new MinecartChest(chestMinecart, world.getLevel());
+                    MinecartChest chestMinecartEntity = new MinecartChest(EntityType.CHEST_MINECART, world.getLevel());
                     chestMinecartEntity.setPos(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
                     chestMinecartEntity.setLootTable(BuiltInLootTables.ABANDONED_MINESHAFT, randomSource.nextLong());
                     world.addFreshEntity(chestMinecartEntity);
@@ -192,7 +187,7 @@ public class SmallTunnel extends BetterMineshaftPiece {
 
         // Place powered rails
         for (int n = 0; n <= LOCAL_Z_END; n++) {
-            this.chanceReplaceAir(world, randomSource, .07f, Blocks.POWERED_RAIL.defaultBlockState().setValue(PoweredRailBlock.POWERED, true), 2, 1, n, box);
+            this.chanceReplaceAir(world, randomSource, .07f, Blocks.POWERED_RAIL.defaultBlockState().setValue(PoweredRailBlock.POWERED, false), 2, 1, n, box);
         }
     }
 
@@ -201,8 +196,7 @@ public class SmallTunnel extends BetterMineshaftPiece {
             if (randomSource.nextFloat() < BetterMineshaftsCommon.CONFIG.spawnRates.smallShaftTntMinecartSpawnRate) {
                 BlockPos blockPos = this.getWorldPos(LOCAL_X_END / 2, 1, z);
                 if (box.isInside(blockPos) && !world.getBlockState(blockPos.below()).isAir()) {
-                    EntityType<MinecartTNT> tntMinecartType = EntityType.TNT_MINECART;
-                    MinecartTNT tntMinecartEntity = new MinecartTNT(tntMinecartType, world.getLevel());
+                    MinecartTNT tntMinecartEntity = new MinecartTNT(EntityType.TNT_MINECART, world.getLevel());
                     tntMinecartEntity.setPos(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
                     world.addFreshEntity(tntMinecartEntity);
                 }

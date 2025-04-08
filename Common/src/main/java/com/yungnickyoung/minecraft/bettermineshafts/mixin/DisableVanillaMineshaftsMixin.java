@@ -22,9 +22,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class DisableVanillaMineshaftsMixin {
     @Inject(method = "tryGenerateStructure", at = @At(value = "HEAD"), cancellable = true)
     void bettermineshafts_disableVanillaMineshafts(
-            StructureSet.StructureSelectionEntry $$0, StructureManager $$1, RegistryAccess $$2, RandomState $$3, StructureTemplateManager $$4, long $$5, ChunkAccess $$6, ChunkPos $$7, SectionPos $$8, ResourceKey<Level> $$9, CallbackInfoReturnable<Boolean> cir
+            StructureSet.StructureSelectionEntry structureSetEntry,
+            StructureManager structureManager,
+            RegistryAccess registryAccess,
+            RandomState randomState,
+            StructureTemplateManager structureTemplateManager,
+            long seed,
+            ChunkAccess chunkAccess, ChunkPos chunkPos,
+            SectionPos sectionPos,
+            ResourceKey<Level> levelResourceKey,
+            CallbackInfoReturnable<Boolean> cir
     ) {
-        if (BetterMineshaftsCommon.CONFIG.disableVanillaMineshafts && $$0.structure().value().type() == StructureType.MINESHAFT) {
+        if (BetterMineshaftsCommon.CONFIG.disableVanillaMineshafts && structureSetEntry.structure().value().type() == StructureType.MINESHAFT) {
             cir.setReturnValue(false);
         }
     }
